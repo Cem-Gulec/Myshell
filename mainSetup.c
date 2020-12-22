@@ -5,6 +5,32 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/types.h>
+/*
+Variable Identifier Instruction Set
+
+
+PART A, B
+0000 -----> Not I/O Redirection { We have to handle part A or part B }
+
+PART C
+0001 -----> Output
+0010 -----> Append
+0011 -----> Input
+0100 -----> Both Input and Output 
+0101 -----> Both Input and Append
+0110 -----> Both Input and Standard Error
+0111 -----> Standard Error
+1000 -----> ERROR CASE
+1001 -----> ERROR CASE
+1010 -----> ERROR CASE
+1011 -----> ERROR CASE
+1100 -----> ERROR CASE
+1101 -----> ERROR CASE
+1110 -----> ERROR CASE
+1111 -----> ERROR CASE 
+
+
+*/
 
 #define MAX_LINE 128 /* 128 chars per line, per command, should be enough. */
 
@@ -23,6 +49,7 @@ struct processNode
 struct processNode *root;
 
 char *envPath;
+char *identifier; // Every process has its own unique identifier according to its category
 
 int main(void)
 {
@@ -39,8 +66,8 @@ int main(void)
         /*setup() calls exit() when Control-D is entered */
         setup(inputBuffer, args, &background);
 
-        execv(getPath(args[0], envPath), args);
-
+        //execv(getPath(args[0], envPath), args);
+        printf("Identifier: %s\n", identifier);
         /** the steps are:
         (1) fork a child process using fork() */
 
@@ -58,6 +85,8 @@ will become null-terminated, C-style strings. */
 
 void setup(char inputBuffer[], char *args[], int *background)
 {
+
+    identifier = strdup("0000");
     int length, /* # of characters in the command line */
         i,      /* loop index for accessing inputBuffer array */
         start,  /* index where beginning of next command parameter is */
@@ -88,7 +117,7 @@ void setup(char inputBuffer[], char *args[], int *background)
         exit(-1); /* terminate with error code of -1 */
     }
 
-    printf(">>%s<<", inputBuffer);
+    //printf(">>%s<<", inputBuffer);
     for (i = 0; i < length; i++)
     { /* examine every character in the inputBuffer */
 
@@ -114,6 +143,27 @@ void setup(char inputBuffer[], char *args[], int *background)
             inputBuffer[i] = '\0';
             args[ct] = NULL; /* no more arguments to this command */
             break;
+        case '>':
+            if (inputBuffer[i - 1] == '>' || inputBuffer[i + 1] == '>')
+            {
+
+                identifier = strdup("0010");
+                printf("%s", identifier);
+                //strcpy(identifier,"00010");
+            }
+            else if (inputBuffer[i - 1] == '2')
+            {
+                identifier = strdup("0111");
+            }
+            else
+            {
+                identifier = strdup("0001");
+            }
+            break;
+
+        case '<':
+            identifier = strdup("0011");
+            break;
 
         default: /* some other character */
             if (start == -1)
@@ -127,8 +177,8 @@ void setup(char inputBuffer[], char *args[], int *background)
     }                /* end of for */
     args[ct] = NULL; /* just in case the input line was > 80 */
 
-    for (i = 0; i <= ct; i++)
-        printf("args %d = %s\n", i, args[i]);
+    // for (i = 0; i <= ct; i++)
+    //     printf("args %d = %s\n", i, args[i]);
 } /* end of setup routine */
 
 char *getPath(char *arg, char *envPath)
