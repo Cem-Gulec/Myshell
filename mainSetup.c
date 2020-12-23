@@ -100,6 +100,7 @@ int main(void)
                 {
                     args[ct - 1] = NULL;
                 }
+               
                 // HERE WE START PROCESS CREATION
                 if ((PID = fork()) == -1)
                 {
@@ -108,10 +109,13 @@ int main(void)
 
                 if (PID == 0)
                 {
+                
                     execv(getPath(args[0], envPath), args);
                 }
-                if(background == 0) {
-                    if ( -1 == waitpid(PID, NULL, 0)) {
+                if (background == 0)
+                {
+                    if (-1 == waitpid(PID, NULL, 0))
+                    {
                         fprintf(stderr, "%s", "Some error occurred while waiting for a foreground application to end.\n");
                     }
                 }
@@ -128,6 +132,8 @@ int main(void)
         {
             // DEFINITELY PART C
         }
+
+        
     }
 }
 
@@ -196,23 +202,39 @@ void setup(char inputBuffer[], char *args[], int *background)
             args[ct] = NULL; /* no more arguments to this command */
             break;
         case '>':
-            if (inputBuffer[i - 1] == '>' || inputBuffer[i + 1] == '>')
+            if (strcmp(identifier, "0011") == 0) // If we have multiple operators like > < , 2>
             {
+                if (inputBuffer[i + 1] == '>')
+                {
 
-                identifier = strdup("0010");
-                printf("%s", identifier);
-                //strcpy(identifier,"00010");
+                    identifier = strdup("0101");
+                }
+                else if (inputBuffer[i - 1] == '2')
+                {
+                    identifier = strdup("0110");
+                }
+                else
+                {
+                    identifier = strdup("0100");
+                }
             }
-            else if (inputBuffer[i - 1] == '2')
+            else if (strcmp(identifier, "0101") != 0 && strcmp(identifier, "0110") != 0 && strcmp(identifier, "0100") != 0)
             {
-                identifier = strdup("0111");
-            }
-            else
-            {
-                identifier = strdup("0001");
+                if (inputBuffer[i + 1] == '>')
+                {
+
+                    identifier = strdup("0010");
+                }
+                else if (inputBuffer[i - 1] == '2')
+                {
+                    identifier = strdup("0111");
+                }
+                else
+                {
+                    identifier = strdup("0001");
+                }
             }
             break;
-
         case '<':
             identifier = strdup("0011");
             break;
@@ -229,15 +251,14 @@ void setup(char inputBuffer[], char *args[], int *background)
     }                /* end of for */
     args[ct] = NULL; /* just in case the input line was > 80 */
 
-    // for (i = 0; i <= ct; i++)
-    //     printf("args %d = %s\n", i, args[i]);
+    for (i = 0; i <= ct; i++)
+        printf("args %d = %s\n", i, args[i]);
 } /* end of setup routine */
 
 char *getPath(char *arg, char *envPath)
 {
     char *temp = envPath;
     char *ch;
-
     ch = strtok(temp, ":");
 
     while (ch != NULL)
@@ -252,7 +273,7 @@ char *getPath(char *arg, char *envPath)
             return strdup(tempPath);
         }
         ch = strtok(NULL, ":");
+        printf("%s\n", tempPath);
     }
-
-    return NULL;
+    return "-1";
 }
