@@ -5,6 +5,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/wait.h>
+
 /*
 Variable Identifier Instruction Set
 
@@ -43,21 +45,21 @@ struct processNode
     char *name;
     pid_t pid;
     pid_t parent_pid;
-    int status; // 0 done // 1 working // 2 not process, command prompt
+    int status; // 0 done // 1 working
     struct processNode *next;
 };
 struct processNode *root;
 
-char *envPath;
 char *identifier; // Every process has its own unique identifier according to its category
+int ct;           /* index of where to place the next parameter into args[] */
 
 int main(void)
 {
     char inputBuffer[MAX_LINE];   /*buffer to hold command entered */
     int background;               /* equals 1 if a command is followed by '&' */
     char *args[MAX_LINE / 2 + 1]; /*command line arguments */
+    char *envPath = getenv("PATH");
 
-    envPath = getenv("PATH");
     while (1)
     {
         background = 0;
@@ -65,16 +67,67 @@ int main(void)
         fflush(stdout);
         /*setup() calls exit() when Control-D is entered */
         setup(inputBuffer, args, &background);
-
+        pid_t PID;
         //execv(getPath(args[0], envPath), args);
         printf("Identifier: %s\n", identifier);
-        /** the steps are:
-        (1) fork a child process using fork() */
 
-        /*
+        if (strcmp("0000", identifier) == 0)
+        {
+            if (strcmp(args[0], "ps_all") == 0)
+            {
+                // PART B
+            }
+            else if (strcmp(args[0], "^Z") == 0)
+            {
+                // PART B
+            }
+            else if (strcmp(args[0], "search") == 0)
+            {
+                // PART B
+            }
+            else if (strcmp(args[0], "bookmark") == 0)
+            {
+                // PART B
+            }
+            else if (strcmp(args[0], "exit") == 0)
+            {
+                // PART B
+            }
+            else
+            {
+                // PART A
+                if (background == 1)
+                {
+                    args[ct - 1] = NULL;
+                }
+                // HERE WE START PROCESS CREATION
+                if ((PID = fork()) == -1)
+                {
+                    fprintf(stderr, "%s", "Fork Failed!\n");
+                }
+
+                if (PID == 0)
+                {
+                    execv(getPath(args[0], envPath), args);
+                }
+                if(background == 0) {
+                    if ( -1 == waitpid(PID, NULL, 0)) {
+                        fprintf(stderr, "%s", "Some error occurred while waiting for a foreground application to end.\n");
+                    }
+                }
+            }
+
+            /** the steps are:
+            (1) fork a child process using fork() */
+            /*
                         (2) the child process will invoke execv()
 						(3) if background == 0, the parent will wait,
                         otherwise it will invoke the setup() function again. */
+        }
+        else
+        {
+            // DEFINITELY PART C
+        }
     }
 }
 
@@ -89,8 +142,7 @@ void setup(char inputBuffer[], char *args[], int *background)
     identifier = strdup("0000");
     int length, /* # of characters in the command line */
         i,      /* loop index for accessing inputBuffer array */
-        start,  /* index where beginning of next command parameter is */
-        ct;     /* index of where to place the next parameter into args[] */
+        start;  /* index where beginning of next command parameter is */
 
     ct = 0;
 
