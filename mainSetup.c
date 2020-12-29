@@ -22,7 +22,7 @@ PART C
 0101 -----> Both Input and Append
 0110 -----> Both Input and Standard Error
 0111 -----> Standard Error
-1000 -----> ERROR CASE
+1000 -----> ERROR CASE "<< Case"
 1001 -----> ERROR CASE
 1010 -----> ERROR CASE
 1011 -----> ERROR CASE
@@ -69,10 +69,11 @@ int main(void)
         setup(inputBuffer, args, &background);
         pid_t PID;
         //execv(getPath(args[0], envPath), args);
-        printf("Identifier: %s\n", identifier);
+        //printf("Identifier: %s\n", identifier);
 
         if (strcmp("0000", identifier) == 0)
         {
+
             if (strcmp(args[0], "ps_all") == 0)
             {
                 // PART B
@@ -100,7 +101,7 @@ int main(void)
                 {
                     args[ct - 1] = NULL;
                 }
-               
+
                 // HERE WE START PROCESS CREATION
                 if ((PID = fork()) == -1)
                 {
@@ -109,14 +110,15 @@ int main(void)
 
                 if (PID == 0)
                 {
-                
+
                     execv(getPath(args[0], envPath), args);
                 }
                 if (background == 0)
                 {
-                    if (-1 == waitpid(PID, NULL, 0))
+                    if (PID != waitpid(PID, NULL, 0))
                     {
                         fprintf(stderr, "%s", "Some error occurred while waiting for a foreground application to end.\n");
+                        EXIT_FAILURE;
                     }
                 }
             }
@@ -132,8 +134,6 @@ int main(void)
         {
             // DEFINITELY PART C
         }
-
-        
     }
 }
 
@@ -202,7 +202,7 @@ void setup(char inputBuffer[], char *args[], int *background)
             args[ct] = NULL; /* no more arguments to this command */
             break;
         case '>':
-            if (strcmp(identifier, "0011") == 0) // If we have multiple operators like > < , 2>
+            if (strcmp(identifier, "0011") == 0) // If we have multiple operators like > < , 2 >
             {
                 if (inputBuffer[i + 1] == '>')
                 {
@@ -218,11 +218,10 @@ void setup(char inputBuffer[], char *args[], int *background)
                     identifier = strdup("0100");
                 }
             }
-            else if (strcmp(identifier, "0101") != 0 && strcmp(identifier, "0110") != 0 && strcmp(identifier, "0100") != 0)
+            else if (strcmp(identifier, "0101") != 0 && strcmp(identifier, "0110") != 0 && strcmp(identifier, "0100") != 0 && strcmp(identifier, "0010") != 0 && strcmp(identifier, "0111") != 0) // Means that input does not contain multiple operators
             {
                 if (inputBuffer[i + 1] == '>')
                 {
-
                     identifier = strdup("0010");
                 }
                 else if (inputBuffer[i - 1] == '2')
@@ -236,7 +235,16 @@ void setup(char inputBuffer[], char *args[], int *background)
             }
             break;
         case '<':
-            identifier = strdup("0011");
+            if (strcmp(identifier, "0011") == 0)
+            {
+                fprintf(stderr, "%s\n", "<< Format is invalid in our architecture.");
+                return;
+            }
+            else
+            {
+                identifier = strdup("0011");
+            }
+
             break;
 
         default: /* some other character */
@@ -251,8 +259,8 @@ void setup(char inputBuffer[], char *args[], int *background)
     }                /* end of for */
     args[ct] = NULL; /* just in case the input line was > 80 */
 
-    for (i = 0; i <= ct; i++)
-        printf("args %d = %s\n", i, args[i]);
+    // for (i = 0; i <= ct; i++)
+    //     printf("args %d = %s\n", i, args[i]);
 } /* end of setup routine */
 
 char *getPath(char *arg, char *envPath)
@@ -273,7 +281,7 @@ char *getPath(char *arg, char *envPath)
             return strdup(tempPath);
         }
         ch = strtok(NULL, ":");
-        printf("%s\n", tempPath);
+        // printf("%s\n", tempPath);
     }
     return "-1";
 }
