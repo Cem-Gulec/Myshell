@@ -47,6 +47,7 @@ struct processNode
     pid_t parent_pid;
     int status; // 0 done // 1 working
     struct processNode *next;
+    struct processNode *previous;
 };
 struct processNode *root;
 
@@ -80,6 +81,7 @@ int main(void)
             }
             else if (strcmp(args[0], "^Z") == 0)
             {
+                printf("muucukkk envera bi");
                 // PART B
             }
             else if (strcmp(args[0], "search") == 0)
@@ -133,6 +135,36 @@ int main(void)
         else
         {
             // DEFINITELY PART C
+            
+            if (strcmp("0001", identifier) == 0) {
+                printf("merhaba ben output\n");
+            }
+            else if (strcmp("0010", identifier) == 0) {
+                printf("merhaba ben append\n");
+                if (args[1] == NULL || args[2] != NULL) {
+                    fprintf(stderr,"%s", "düzgün input gir aq evladi.\n");
+                }
+            }
+            else if (strcmp("0011", identifier) == 0) {
+                printf("merhaba ben input\n");
+            }   
+            else if (strcmp("0100", identifier) == 0) {
+                printf("merhaba ben both input and output\n");
+            }
+            else if (strcmp("0101", identifier) == 0) {
+                printf("merhaba ben both input and append\n");
+            }
+            else if (strcmp("0110", identifier) == 0) {
+                printf("merhaba ben both input and std error\n");
+            }
+            else if (strcmp("0111", identifier) == 0) {
+                printf("merhaba ben std error\n");
+            }
+            else {
+                fprintf(stderr, "%s", "Your input format is invalid in our architecture.\n");
+            }
+
+        
         }
     }
 }
@@ -151,6 +183,7 @@ void setup(char inputBuffer[], char *args[], int *background)
         start;  /* index where beginning of next command parameter is */
 
     ct = 0;
+    int countOfOperators = 0;
 
     /* read what the user enters on the command line */
     length = read(STDIN_FILENO, inputBuffer, MAX_LINE);
@@ -206,15 +239,17 @@ void setup(char inputBuffer[], char *args[], int *background)
             {
                 if (inputBuffer[i + 1] == '>')
                 {
-
+                    countOfOperators++;
                     identifier = strdup("0101");
                 }
                 else if (inputBuffer[i - 1] == '2')
                 {
+                    countOfOperators++;
                     identifier = strdup("0110");
                 }
                 else
                 {
+                    countOfOperators++;
                     identifier = strdup("0100");
                 }
             }
@@ -222,14 +257,17 @@ void setup(char inputBuffer[], char *args[], int *background)
             {
                 if (inputBuffer[i + 1] == '>')
                 {
+                    countOfOperators++;
                     identifier = strdup("0010");
                 }
                 else if (inputBuffer[i - 1] == '2')
                 {
+                    countOfOperators++;
                     identifier = strdup("0111");
                 }
                 else
                 {
+                    countOfOperators++;
                     identifier = strdup("0001");
                 }
             }
@@ -237,11 +275,13 @@ void setup(char inputBuffer[], char *args[], int *background)
         case '<':
             if (strcmp(identifier, "0011") == 0)
             {
-                fprintf(stderr, "%s\n", "<< Format is invalid in our architecture.");
+                countOfOperators++;
+                identifier = strdup("1000"); // ERROR CASE
                 return;
             }
             else
             {
+                countOfOperators++;
                 identifier = strdup("0011");
             }
 
@@ -256,13 +296,51 @@ void setup(char inputBuffer[], char *args[], int *background)
                 inputBuffer[i - 1] = '\0';
             }
         }            /* end of switch */
-    }                /* end of for */
+    }
+                    /* end of for */
     args[ct] = NULL; /* just in case the input line was > 80 */
 
-    // for (i = 0; i <= ct; i++)
-    //     printf("args %d = %s\n", i, args[i]);
-} /* end of setup routine */
+//     for (i = 0; i <= ct; i++)
+//     {
+//         // argumanın command olup olmadığını kontrol eden fonksiyon yazacağız
 
+//         int j = 0;
+//         int redirectionCount = 0;
+//         while(1){
+//             if(args[i][j] != '\0')
+//                 break;
+//             if((args[i][j] != '<' || args[i][j] != '<') && i == 0) 
+//             {
+//                 printf("hata var");
+//             } 
+//             else if ( args[i][j] != '<' ) 
+//             {
+//                 // input
+//                 redirectionCount++;
+//                 if (redirectionCount > 1) {
+//                     // hata
+//                 }
+//             } else if ( args[i][j] != '>' ) 
+//             {
+//                 // input
+//                 redirectionCount++;
+//                 if (redirectionCount > 2) {
+//                     // hata
+//                     return;
+//                 } else if (redirectionCount == 2) {
+//                     // append
+//                 } else {
+//                     // output
+//                 }
+//             }
+
+//             j++;
+//         }
+//     }
+//     printf("args %d = %s\n", i, args[i]);
+// } 
+/* end of setup routine */
+}
 char *getPath(char *arg, char *envPath)
 {
     char *temp = envPath;
@@ -285,3 +363,5 @@ char *getPath(char *arg, char *envPath)
     }
     return "-1";
 }
+
+
