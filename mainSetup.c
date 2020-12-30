@@ -15,13 +15,13 @@ PART A, B
 0000 -----> Not I/O Redirection { We have to handle part A or part B }
 
 PART C
-0001 -----> Output
-0010 -----> Append
-0011 -----> Input
+0001 -----> Output 1
+0010 -----> Append 1 
+0011 -----> Input 1
 0100 -----> Both Input and Output 
 0101 -----> Both Input and Append
 0110 -----> Both Input and Standard Error
-0111 -----> Standard Error
+0111 -----> Standard Error 1
 1000 -----> ERROR CASE "<< Case"
 1001 -----> ERROR CASE
 1010 -----> ERROR CASE
@@ -35,9 +35,14 @@ PART C
 */
 
 #define MAX_LINE 128 /* 128 chars per line, per command, should be enough. */
+#define PERMISSION_FOR_OUTPUT_FILE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
+#define FLAGS_FOR_APPEND (O_WRONLY | O_CREAT | O_APPEND)
+#define FLAGS_FOR_OUTPUT (O_WRONLY | O_CREAT | O_TRUNC)
+#define FLAGS_FOR_INPUT (O_RDONLY)
+char *env_path;
 
 void setup(char inputBuffer[], char *args[], int *background);
-char *getPath(char *arg, char *envPath);
+char *getPath(char *arg);
 int getCommandType(char *args[]);
 
 struct processNode
@@ -59,7 +64,7 @@ int main(void)
     char inputBuffer[MAX_LINE];   /*buffer to hold command entered */
     int background;               /* equals 1 if a command is followed by '&' */
     char *args[MAX_LINE / 2 + 1]; /*command line arguments */
-    char *envPath = getenv("PATH");
+    env_path = getenv("PATH");
 
     while (1)
     {
@@ -113,7 +118,7 @@ int main(void)
                 if (PID == 0)
                 {
 
-                    execv(getPath(args[0], envPath), args);
+                    execv(getPath(args[0]), args);
                 }
                 if (background == 0)
                 {
@@ -135,37 +140,301 @@ int main(void)
         else
         {
             // DEFINITELY PART C
-            
-            if (strcmp("0001", identifier) == 0) {
-                printf("merhaba ben output\n");
-            }
-            else if (strcmp("0010", identifier) == 0) {
-                printf("merhaba ben append\n");
-                if (args[1] == NULL || args[2] != NULL) {
-                    fprintf(stderr,"%s", "düzgün input gir aq evladi.\n");
+
+            if (strcmp("0001", identifier) == 0)
+            {
+                //printf("merhaba ben output\n");
+
+                //printf("%s\n", args[1]);
+                //printf("%c\n", inputBuffer[3]);
+                int indexOfOperator = 0;
+                char outputFileName[128];
+                int indexOfOutputFileName = 0;
+
+                for (int i = 0; i < 128; i++)
+                {
+                    if (inputBuffer[i] == '>')
+                    {
+                        indexOfOperator = i + 1;
+                        i++;
+                        continue;
+                    }
+                    else if (indexOfOperator > 0)
+                    {
+                        outputFileName[indexOfOutputFileName] = inputBuffer[i];
+                        indexOfOutputFileName++;
+                        if (inputBuffer[i] == '\0')
+                        {
+                            outputFileName[indexOfOutputFileName] = '\0';
+                            break;
+                        }
+                    }
                 }
+
+                int fileDescription = open(outputFileName, FLAGS_FOR_OUTPUT, PERMISSION_FOR_OUTPUT_FILE);
+                if (fileDescription == -1)
+                {
+                    fprintf(stderr, "%s", "Opening file process has given an error.");
+                }
+
+                PID = fork();
+                if (PID == -1)
+                {
+                    fprintf(stderr, "%s", "An unexpected error occurred while creating new process");
+                }
+
+                if (PID == 0)
+                {
+                    dup2(fileDescription, STDOUT_FILENO);
+                    execv(getPath(args[0]), &args[0]);
+                }
+
+                //This instruction will always be foreground, so we have to wait
+                if (PID != waitpid(PID, NULL, 0))
+                {
+                    fprintf(stderr, "%s", "Some error occurred while waiting for a foreground application to end.");
+                }
+                close(fileDescription);
             }
-            else if (strcmp("0011", identifier) == 0) {
-                printf("merhaba ben input\n");
-            }   
-            else if (strcmp("0100", identifier) == 0) {
-                printf("merhaba ben both input and output\n");
+            else if (strcmp("0010", identifier) == 0)
+            {
+                //printf("%s\n", args[1]);
+                //printf("%c\n", inputBuffer[3]);
+                int indexOfOperator = 0;
+                char outputFileName[128];
+                int indexOfOutputFileName = 0;
+
+                for (int i = 0; i < 128; i++)
+                {
+                    if (inputBuffer[i] == '>')
+                    {
+                        indexOfOperator = i + 1;
+                        i = i + 2;
+                        continue;
+                    }
+                    else if (indexOfOperator > 0)
+                    {
+                        outputFileName[indexOfOutputFileName] = inputBuffer[i];
+                        indexOfOutputFileName++;
+                        if (inputBuffer[i] == '\0')
+                        {
+                            outputFileName[indexOfOutputFileName] = '\0';
+                            break;
+                        }
+                    }
+                }
+
+                int fileDescription = open(outputFileName, FLAGS_FOR_APPEND, PERMISSION_FOR_OUTPUT_FILE);
+                if (fileDescription == -1)
+                {
+                    fprintf(stderr, "%s", "Opening file process has given an error.");
+                }
+
+                PID = fork();
+                if (PID == -1)
+                {
+                    fprintf(stderr, "%s", "An unexpected error occurred while creating new process");
+                }
+
+                if (PID == 0)
+                {
+                    dup2(fileDescription, 1);
+                    execv(getPath(args[0]), &args[0]);
+                }
+
+                //This instruction will always be foreground, so we have to wait
+                if (PID != waitpid(PID, NULL, 0))
+                {
+                    fprintf(stderr, "%s", "Some error occurred while waiting for a foreground application to end.");
+                }
+                close(fileDescription);
             }
-            else if (strcmp("0101", identifier) == 0) {
+            else if (strcmp("0011", identifier) == 0)
+            {
+                //printf("%s\n", args[1]);
+                //printf("%c\n", inputBuffer[3]);
+                int indexOfOperator = 0;
+                char outputFileName[128];
+                int indexOfOutputFileName = 0;
+
+                for (int i = 0; i < 128; i++)
+                {
+                    if (inputBuffer[i] == '<')
+                    {
+                        indexOfOperator = i + 1;
+                        i++;
+                        continue;
+                    }
+                    else if (indexOfOperator > 0)
+                    {
+                        outputFileName[indexOfOutputFileName] = inputBuffer[i];
+                        indexOfOutputFileName++;
+                        if (inputBuffer[i] == '\0')
+                        {
+                            outputFileName[indexOfOutputFileName] = '\0';
+                            break;
+                        }
+                    }
+                }
+
+                int fileDescription = open(outputFileName, FLAGS_FOR_INPUT);
+                if (fileDescription == -1)
+                {
+                    fprintf(stderr, "%s", "Opening file process has given an error.");
+                }
+
+                PID = fork();
+                if (PID == -1)
+                {
+                    fprintf(stderr, "%s", "An unexpected error occurred while creating new process");
+                }
+
+                if (PID == 0)
+                {
+                    dup2(fileDescription, STDIN_FILENO);
+                    execv(getPath(args[0]), &args[0]);
+                }
+
+                //This instruction will always be foreground, so we have to wait
+                if (PID != waitpid(PID, NULL, 0))
+                {
+                    fprintf(stderr, "%s", "Some error occurred while waiting for a foreground application to end.");
+                }
+                close(fileDescription);
+            }
+            else if (strcmp("0100", identifier) == 0)
+            {
+                //printf("merhaba ben both input and output\n");
+                int indexOfOperator = 0;
+                char inputFileName[128];
+                char outputFileName[128];
+                int indexOfOutputFileName = 0;
+                int indexOfInputFileName = 0;
+
+                for (int i = 0; i < 128; i++)
+                {
+                    if (inputBuffer[i] == '<')
+                    {
+                        indexOfOperator = i + 1;
+                        i++;
+                        continue;
+                    }
+                    else if (indexOfOperator > 0)
+                    {
+                        inputFileName[indexOfInputFileName] = inputBuffer[i];
+                        indexOfInputFileName++;
+                        if (inputBuffer[i] == '>')
+                        {
+                            inputFileName[indexOfInputFileName - 1] = '\0';
+
+                            break;
+                        }
+                    }
+                }
+                indexOfOperator = 0;
+
+                for (int i = 0; i < 128; i++)
+                {
+                    if (inputBuffer[i] == '>')
+                    {
+                        indexOfOperator = i + 1;
+                        i++;
+                        continue;
+                    }
+                    else if (indexOfOperator > 0)
+                    {
+                        outputFileName[indexOfOutputFileName] = inputBuffer[i];
+                        indexOfOutputFileName++;
+                        if (inputBuffer[i] == '\0')
+                        {
+                            outputFileName[indexOfOutputFileName] = '\0';
+
+                            break;
+                        }
+                    }
+                }
+                // for (int j = indexOfInputFileName + 1; j < 128; j++)
+                // {
+                //     outputFileName[indexOfOutputFileName] = inputBuffer[j];
+                //     indexOfOutputFileName++;
+
+                //     if (inputBuffer[j] == '\0')
+                //     {
+                //         outputFileName[indexOfOutputFileName - 1] = '\0';
+                //         break;
+                //     }
+                // }
+
+                printf("%s ---- %s\n", inputFileName, outputFileName);
+            }
+            else if (strcmp("0101", identifier) == 0)
+            {
                 printf("merhaba ben both input and append\n");
             }
-            else if (strcmp("0110", identifier) == 0) {
+            else if (strcmp("0110", identifier) == 0)
+            {
                 printf("merhaba ben both input and std error\n");
             }
-            else if (strcmp("0111", identifier) == 0) {
-                printf("merhaba ben std error\n");
+            else if (strcmp("0111", identifier) == 0)
+            {
+                //printf("merhaba ben std error\n");
+                //printf("%s\n", args[1]);
+                //printf("%c\n", inputBuffer[3]);
+                int indexOfOperator = 0;
+                char outputFileName[128];
+                int indexOfOutputFileName = 0;
+
+                for (int i = 0; i < 128; i++)
+                {
+                    if (inputBuffer[i] == '2' && inputBuffer[i + 1] == '>')
+                    {
+                        indexOfOperator = i + 1;
+                        i = i + 2;
+                        continue;
+                    }
+                    else if (indexOfOperator > 0)
+                    {
+                        outputFileName[indexOfOutputFileName] = inputBuffer[i];
+                        indexOfOutputFileName++;
+                        if (inputBuffer[i] == '\0')
+                        {
+                            outputFileName[indexOfOutputFileName] = '\0';
+                            break;
+                        }
+                    }
+                }
+
+                int fileDescription = open(outputFileName, FLAGS_FOR_OUTPUT, PERMISSION_FOR_OUTPUT_FILE);
+                if (fileDescription == -1)
+                {
+                    fprintf(stderr, "%s", "Opening file process has given an error.");
+                }
+
+                PID = fork();
+                if (PID == -1)
+                {
+                    fprintf(stderr, "%s", "An unexpected error occurred while creating new process");
+                }
+
+                if (PID == 0)
+                {
+                    dup2(fileDescription, STDERR_FILENO);
+                    execv(getPath(args[0]), &args[0]);
+                }
+
+                //This instruction will always be foreground, so we have to wait
+                if (PID != waitpid(PID, NULL, 0))
+                {
+                    fprintf(stderr, "%s", "Some error occurred while waiting for a foreground application to end.");
+                }
+                close(fileDescription);
             }
-            else {
+            else
+            {
                 fprintf(stderr, "%s", "Your input format is invalid in our architecture.\n");
             }
-
-        
         }
+        printf("\n");
     }
 }
 
@@ -187,7 +456,7 @@ void setup(char inputBuffer[], char *args[], int *background)
 
     /* read what the user enters on the command line */
     length = read(STDIN_FILENO, inputBuffer, MAX_LINE);
-
+    //printf("%d\n",length);
     /* 0 is the system predefined file descriptor for stdin (standard input),
        which is the user's screen in this case. inputBuffer by itself is the
        same as &inputBuffer[0], i.e. the starting address of where to store
@@ -198,6 +467,11 @@ void setup(char inputBuffer[], char *args[], int *background)
     if (length == 0)
         exit(0); /* ^d was entered, end of user command stream */
 
+    if (length == 1)
+    {
+        fprintf(stderr, "%s\n", "Please execute program again and specify input arguments.");
+        exit(-1);
+    }
     /* the signal interrupted the read system call */
     /* if the process is in the read() system call, read returns -1
   However, if this occurs, errno is set to EINTR. We can check this  value
@@ -295,55 +569,77 @@ void setup(char inputBuffer[], char *args[], int *background)
                 *background = 1;
                 inputBuffer[i - 1] = '\0';
             }
-        }            /* end of switch */
+        } /* end of switch */
     }
-                    /* end of for */
+    /* end of for */
     args[ct] = NULL; /* just in case the input line was > 80 */
 
-//     for (i = 0; i <= ct; i++)
-//     {
-//         // argumanın command olup olmadığını kontrol eden fonksiyon yazacağız
+    // if (args[1] == NULL && strcmp(identifier, "0001") == 0)
+    // {
+    //     fprintf(stderr, "%s", "Argument count is less than expected.\n");
+    //     return;
+    // }
 
-//         int j = 0;
-//         int redirectionCount = 0;
-//         while(1){
-//             if(args[i][j] != '\0')
-//                 break;
-//             if((args[i][j] != '<' || args[i][j] != '<') && i == 0) 
-//             {
-//                 printf("hata var");
-//             } 
-//             else if ( args[i][j] != '<' ) 
-//             {
-//                 // input
-//                 redirectionCount++;
-//                 if (redirectionCount > 1) {
-//                     // hata
-//                 }
-//             } else if ( args[i][j] != '>' ) 
-//             {
-//                 // input
-//                 redirectionCount++;
-//                 if (redirectionCount > 2) {
-//                     // hata
-//                     return;
-//                 } else if (redirectionCount == 2) {
-//                     // append
-//                 } else {
-//                     // output
-//                 }
-//             }
+    if (strcmp(identifier, "0001") == 0 || strcmp(identifier, "0010") == 0 || strcmp(identifier, "0111") == 0)
+    {
+        args[ct - 1] = NULL;
+    }
 
-//             j++;
-//         }
-//     }
-//     printf("args %d = %s\n", i, args[i]);
-// } 
-/* end of setup routine */
+    //args[ct-1] = NULL;
+    //     for (i = 0; i <= ct; i++)
+    //     {
+    //         // argumanın command olup olmadığını kontrol eden fonksiyon yazacağız
+
+    //         int j = 0;
+    //         int redirectionCount = 0;
+    //         while(1){
+    //             if(args[i][j] != '\0')
+    //                 break;
+    //             if((args[i][j] != '<' || args[i][j] != '<') && i == 0)
+    //             {
+    //                 printf("hata var");
+    //             }
+    //             else if ( args[i][j] != '<' )
+    //             {
+    //                 // input
+    //                 redirectionCount++;
+    //                 if (redirectionCount > 1) {
+    //                     // hata
+    //                 }
+    //             } else if ( args[i][j] != '>' )
+    //             {
+    //                 // input
+    //                 redirectionCount++;
+    //                 if (redirectionCount > 2) {
+    //                     // hata
+    //                     return;
+    //                 } else if (redirectionCount == 2) {
+    //                     // append
+    //                 } else {
+    //                     // output
+    //                 }
+    //             }
+
+    //             j++;
+    //         }
+    //     }
+    //     printf("args %d = %s\n", i, args[i]);
+    // }
+    /* end of setup routine */
 }
-char *getPath(char *arg, char *envPath)
+char *getPath(char *arg)
+
 {
-    char *temp = envPath;
+    char buffer[100];
+    char qwz[100];
+    getcwd(buffer, 100);
+    strcpy(qwz, ":");
+    strcat(qwz, buffer);
+
+    strcat(env_path, qwz);
+
+    char *temp = env_path;
+
     char *ch;
     ch = strtok(temp, ":");
 
@@ -363,5 +659,3 @@ char *getPath(char *arg, char *envPath)
     }
     return "-1";
 }
-
-

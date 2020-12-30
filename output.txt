@@ -1,0 +1,12 @@
+total 136
+-rw-rw-r-- 1 tuna tuna 90145 Ara 22 02:44 CSE3033_Project2.pdf
+drwxrwxr-x 2 tuna tuna  4096 Ara 30 19:55 gecen_seneler
+-rwxrwxr-x 1 tuna tuna 18016 Ara 30 20:17 mainSetup
+-rw-rw-r-- 1 tuna tuna 14119 Ara 30 20:17 mainSetup.c
+-rw-r--r-- 1 tuna tuna     0 Ara 30 20:19 outputOfOutputCall.txt
+-rw-rw-r-- 1 tuna tuna    13 Ara 22 02:44 README.md
+CSE3033_Project2.pdf
+mainSetup
+mainSetup.c
+outputOfOutputCall.txt
+README.md
