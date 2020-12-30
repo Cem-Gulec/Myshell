@@ -353,19 +353,45 @@ int main(void)
                         }
                     }
                 }
-                // for (int j = indexOfInputFileName + 1; j < 128; j++)
-                // {
-                //     outputFileName[indexOfOutputFileName] = inputBuffer[j];
-                //     indexOfOutputFileName++;
 
-                //     if (inputBuffer[j] == '\0')
-                //     {
-                //         outputFileName[indexOfOutputFileName - 1] = '\0';
-                //         break;
-                //     }
-                // }
+                //printf("%s ---- %s\n", inputFileName, outputFileName);
 
-                printf("%s ---- %s\n", inputFileName, outputFileName);
+                int inputFileDescription = open(inputFileName, FLAGS_FOR_INPUT);
+                if (inputFileDescription == -1)
+                {
+                    fprintf(stderr, "%s", "Opening file process has given an error.");
+                }
+
+                int outputFileDescription = open(outputFileName, FLAGS_FOR_OUTPUT, PERMISSION_FOR_OUTPUT_FILE);
+                if (inputFileDescription == -1)
+                {
+                    fprintf(stderr, "%s", "Opening file process has given an error.");
+                }
+
+                PID = fork();
+                if (PID == -1)
+                {
+                    fprintf(stderr, "%s", "An unexpected error occurred while creating new process");
+                }
+
+                if (PID == 0)
+                {
+                    dup2(inputFileDescription, STDIN_FILENO);
+                    dup2(outputFileDescription, STDOUT_FILENO);
+
+                    execv(getPath(args[0]), &args[0]);
+                }
+
+                //This instruction will always be foreground, so we have to wait
+                if (PID != waitpid(PID, NULL, 0))
+                {
+                    fprintf(stderr, "%s", "Some error occurred while waiting for a foreground application to end.");
+                }
+                close(inputFileDescription);
+                close(outputFileDescription);
+
+
+
             }
             else if (strcmp("0101", identifier) == 0)
             {
@@ -580,7 +606,7 @@ void setup(char inputBuffer[], char *args[], int *background)
     //     return;
     // }
 
-    if (strcmp(identifier, "0001") == 0 || strcmp(identifier, "0010") == 0 || strcmp(identifier, "0111") == 0)
+    if (strcmp(identifier, "0001") == 0 || strcmp(identifier, "0010") == 0 || strcmp(identifier, "0111") == 0 || strcmp(identifier, "0100") == 0 )
     {
         args[ct - 1] = NULL;
     }
