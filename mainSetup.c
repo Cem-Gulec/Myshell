@@ -47,8 +47,9 @@ int getCommandType(char *args[]);
 void insertBookmark(char *command);
 void printBookmarkList();
 void removeBookmark(int position);
-char *executeBookmark(int position);
+char *getExecutableStringFromBookmarks(int position);
 int isArgumentNumber(char *arg);
+void removeAllChars(char* str, char c);
 
 struct bookmarkNode
 {
@@ -91,7 +92,6 @@ int main(void)
         pid_t PID;
         //execv(getPath(args[0], envPath), args);
         //printf("Identifier: %s\n", identifier);
-
         if (strcmp("0000", identifier) == 0)
         {
 
@@ -108,31 +108,74 @@ int main(void)
             {
                 // PART B
             }
-            else if (!strcmp(args[0], "bookmark"))
+            else if (strstr(inputBuffer, "bookmark") != NULL)
             {
-                if(!strcmp(args[1], "-i") && args[2] == NULL) {
-                    // error
-                } else if (!strcmp(args[1], "-i") && args[2] != NULL) {
-                    if(!isArgumentNumber(args[2])) {
-                        printf(" not a number");
-                    } else
+                if (args[1] == NULL)
+                {
+                    fprintf(stderr, "%s", "Input is invalid.");
+                    continue;
+                }
+                else if (strcmp(args[1], "-i") == 0)
+                {
+                    if (args[2] == NULL)
                     {
-                        // TODO: bookmark -i 0
+                        fprintf(stderr, "%s", "Input is invalid.");
+                        continue;
                     }
-                    
-                } else if(!strcmp(args[1], "-d") && args[2] != NULL) {
-                    if(!isArgumentNumber(args[2])) {
-                        printf(" not a number");
-                    } else
+                    else if (isArgumentNumber(args[2]) == 0)
                     {
-                        // TODO: bookmark -i 0
+                        fprintf(stderr, "%s", "Please specify a numerical value for execution.");
+                        continue;
                     }
-                } else if(!strcmp(args[1], "-l") ) {
-                    //
-                } else if(args[1] == NULL) {
+                    else
+                    {
+                        //TODO EXECUTE
+                        printf("POFUDUK: %s\n", getExecutableStringFromBookmarks(atoi(args[2])) );
+                        char *executeCommand = getExecutableStringFromBookmarks(atoi(args[2]));
+                        system(executeCommand);
+                    }
+                }
+                else if (strcmp(args[1], "-d") == 0)
+                {
+                    if (args[2] == NULL)
+                    {
+                        fprintf(stderr, "%s", "Input is invalid.");
+                        continue;
+                    }
+                    else if (isArgumentNumber(args[2]) == 0)
+                    {
+                        fprintf(stderr, "%s", "Please specify a numerical value for execution.");
+                        continue;
+                    }
+                    else
+                    {
+                        removeBookmark(atoi(args[2]));
+                    }
+                }
+                else if (strcmp(args[1], "-l") == 0)
+                {
+                    printBookmarkList();
+                }
+                else
+                {
+                    char bookmarkString[128];
+                    strcpy(bookmarkString, "");
 
-                } else if(args[1] != NULL) {
-                    
+                    for (int i = 0; i < ct - 1; i++)
+                    {
+                        strcpy(args[i], args[i + 1]);
+                    }
+
+                    int index = ct - 1;
+                    for (int i = 0; i < index; i++)
+                    {
+                        strcat(bookmarkString, args[i]);
+                        if(i != index - 1) {
+                            strcat(bookmarkString, " ");
+                        }
+                    }
+                    insertBookmark(bookmarkString);
+                    //printf("%s", bookmarkString);
                 }
             }
             else if (strcmp(args[0], "exit") == 0)
@@ -543,7 +586,10 @@ void setup(char inputBuffer[], char *args[], int *background)
         exit(-1); /* terminate with error code of -1 */
     }
 
-    //printf(">>%s<<", inputBuffer);
+    // if (strstr(inputBuffer, "bookmark") != NULL || strstr(inputBuffer, "-l") != NULL || strstr(inputBuffer, "-d") != NULL || strstr(inputBuffer, "-i") != NULL)
+    // {
+    //     return;
+    // }
     for (i = 0; i < length; i++)
     { /* examine every character in the inputBuffer */
 
@@ -723,17 +769,40 @@ char *getPath(char *arg)
 
 void insertBookmark(char *command)
 {
-    //create a link
-    struct bookmarkNode *link = (struct bookmarkNode *)malloc(sizeof(struct bookmarkNode));
+    if (head == NULL)
+    {
+        struct bookmarkNode *temp = (struct bookmarkNode *)malloc(sizeof(struct bookmarkNode));
+        temp->command = strdup(command);
+        temp->next = NULL;
+        head = temp;
+        return;
+    }
+    else
+    {
+        struct bookmarkNode *iter = head;
+        int previousIndex = 0;
 
-    //link->key = key;
-    link->command = strdup(command);
+        while (iter->next != NULL)
+        {
+            iter = iter->next;
+        }
 
-    //point it to old first node
-    link->next = head;
+        struct bookmarkNode *link = (struct bookmarkNode *)malloc(sizeof(struct bookmarkNode));
+        iter -> next = link;
+        link->command = strdup(command);
+        link->next = NULL;
+    }
+    // //create a link
+    // struct bookmarkNode *link = (struct bookmarkNode *)malloc(sizeof(struct bookmarkNode));
 
-    //point first to new first node
-    head = link;
+    // //link->key = key;
+    // link->command = strdup(command);
+
+    // //point it to old first node
+    // link->next = head;
+
+    // //point first to new first node
+    // head = link;
 }
 
 void printBookmarkList()
@@ -741,7 +810,7 @@ void printBookmarkList()
 
     struct bookmarkNode *ptr = head;
 
-    printf("\n[head] =>");
+    
     //start from the beginning
     int i = 0;
     while (ptr != NULL)
@@ -750,7 +819,7 @@ void printBookmarkList()
         ptr = ptr->next;
         i++;
     }
-    printf(" [null]\n");
+   
 }
 
 void removeBookmark(int position)
@@ -802,34 +871,43 @@ void removeBookmark(int position)
     }
 }
 
-char *executeBookmark(int position) {
-   int pos = 0;
-   
-   if(head==NULL) {
-      printf("Bookmark List not initialized");
-      return NULL;
-   } 
+char *getExecutableStringFromBookmarks(int position)
+{
+    int pos = 0;
+    char *returnExecutableCommand;
+    if (head == NULL)
+    {
+        printf("Bookmark List not initialized");
+        return NULL;
+    }
 
-   current = head;
-   while(current->next!=NULL) {
-      if(pos != position) {
-         return current->command;
-      }
-      
-      current = current->next;
-      pos++;
-   }
-   
-   return NULL;
+    current = head;
+    while (current != NULL)
+    {
+        if (pos == position)
+        {
+            returnExecutableCommand = strdup(current -> command);
+            //strcpy(returnExecutableCommand,current->command);
+            removeAllChars(returnExecutableCommand,'"');
+            return returnExecutableCommand;
+        }
+
+        current = current->next;
+        pos++;
+    }
+
+    return NULL;
 }
 
+int isArgumentNumber(char *arg)
+{
 
-int isArgumentNumber(char *arg) {
+    int i = 0;
+    while (arg[i] != '\0')
+    {
 
-    int i=0;
-    while(arg[i] != '\0') {
-
-        if(!(arg[i] >='0' && arg[i]<='9')){
+        if (!(arg[i] >= '0' && arg[i] <= '9'))
+        {
             return 0;
         }
         i++;
@@ -837,6 +915,13 @@ int isArgumentNumber(char *arg) {
     return 1;
 }
 
-
-
-
+void removeAllChars(char* str, char c)
+  {
+  char *pr = str, *pw = str;
+  while (*pr)
+    {
+    *pw = *pr++;
+    pw += (*pw != c);
+    }
+  *pw = '\0';
+  }
