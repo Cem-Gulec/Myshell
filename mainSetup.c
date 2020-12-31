@@ -11,8 +11,6 @@
 
 /*
 Variable Identifier Instruction Set
-
-
 PART A, B
 0000 -----> Not I/O Redirection { We have to handle part A or part B }
 
@@ -21,19 +19,7 @@ PART C
 0010 -----> Append 1 
 0011 -----> Input 1
 0100 -----> Both Input and Output 
-0101 -----> Both Input and Append
-0110 -----> Both Input and Standard Error
 0111 -----> Standard Error 1
-1000 -----> ERROR CASE "<< Case"
-1001 -----> ERROR CASE
-1010 -----> ERROR CASE
-1011 -----> ERROR CASE
-1100 -----> ERROR CASE
-1101 -----> ERROR CASE
-1110 -----> ERROR CASE
-1111 -----> ERROR CASE 
-
-
 */
 
 #define MAX_LINE 128 /* 128 chars per line, per command, should be enough. */
@@ -45,7 +31,6 @@ char *env_path;
 
 void setup(char inputBuffer[], char *args[], int *background);
 char *getPath(char *arg);
-int getCommandType(char *args[]);
 void insertBookmark(char *command);
 void printBookmarkList();
 void removeBookmark(int position);
@@ -53,8 +38,7 @@ char *getExecutableStringFromBookmarks(int position);
 int isArgumentNumber(char *arg);
 void removeAllChars(char *str, char c);
 int searchInCurrentDirectory(char *input);
-void searchRecursiveDirectory(char *path, char *input);
-int searchInfile(char *fname, char *str);
+int searchRecursiveFile(char *fname, char *str);
 void recursiveSearch(char *path, char *str);
 char *ltrim(char *s);
 char *rtrim(char *s);
@@ -103,14 +87,12 @@ int main(void)
         //printf("Identifier: %s\n", identifier);
         if (strcmp("0000", identifier) == 0)
         {
-
             if (strcmp(args[0], "ps_all") == 0)
             {
                 // PART B
             }
             else if (strcmp(args[0], "^Z") == 0)
             {
-                printf("muucukkk envera bi");
                 // PART B
             }
             else if (strcmp(args[0], "search") == 0)
@@ -264,13 +246,6 @@ int main(void)
                     }
                 }
             }
-
-            /** the steps are:
-            (1) fork a child process using fork() */
-            /*
-                        (2) the child process will invoke execv()
-						(3) if background == 0, the parent will wait,
-                        otherwise it will invoke the setup() function again. */
         }
         else
         {
@@ -278,10 +253,6 @@ int main(void)
 
             if (strcmp("0001", identifier) == 0)
             {
-                //printf("merhaba ben output\n");
-
-                //printf("%s\n", args[1]);
-                //printf("%c\n", inputBuffer[3]);
                 int indexOfOperator = 0;
                 char outputFileName[128];
                 int indexOfOutputFileName = 0;
@@ -386,8 +357,7 @@ int main(void)
             }
             else if (strcmp("0011", identifier) == 0)
             {
-                //printf("%s\n", args[1]);
-                //printf("%c\n", inputBuffer[3]);
+                
                 int indexOfOperator = 0;
                 char outputFileName[128];
                 int indexOfOutputFileName = 0;
@@ -439,7 +409,7 @@ int main(void)
             }
             else if (strcmp("0100", identifier) == 0)
             {
-                //printf("merhaba ben both input and output\n");
+                
                 int indexOfOperator = 0;
                 char inputFileName[128];
                 char outputFileName[128];
@@ -525,19 +495,12 @@ int main(void)
                 close(inputFileDescription);
                 close(outputFileDescription);
             }
-            else if (strcmp("0101", identifier) == 0)
-            {
-                printf("merhaba ben both input and append\n");
-            }
             else if (strcmp("0110", identifier) == 0)
             {
                 printf("merhaba ben both input and std error\n");
             }
             else if (strcmp("0111", identifier) == 0)
             {
-                //printf("merhaba ben std error\n");
-                //printf("%s\n", args[1]);
-                //printf("%c\n", inputBuffer[3]);
                 int indexOfOperator = 0;
                 char outputFileName[128];
                 int indexOfOutputFileName = 0;
@@ -788,8 +751,9 @@ void setup(char inputBuffer[], char *args[], int *background)
     // }
     /* end of setup routine */
 }
-char *getPath(char *arg)
 
+// Get the environment path and add to current working directory
+char *getPath(char *arg)
 {
     char buffer[100];
     char qwz[100];
@@ -1050,69 +1014,64 @@ char *trim(char *s)
     return rtrim(ltrim(s));
 }
 
-int searchInfile(char *fname, char *str)
+int searchRecursiveFile(char *fileName, char *str)
 {
-    FILE *fp;
-    int line_num = 1;
-    int find_result = 0;
+    FILE *filePtr;
+    int lineNumber = 1;
+    int occurrenceCount = 0;
     char temp[1024];
 
-    if ((fp = fopen(fname, "r")) == NULL)
-    {
-        return (-1);
-    }
+    filePtr = fopen(fileName, "r");
+    if (filePtr == NULL)
+        return -1;
 
-    while (fgets(temp, 1024, fp) != NULL)
+    while (fgets(temp, 1024, filePtr) != NULL)
     {
         if ((strstr(temp, strdup(str))) != NULL)
         {
-            printf("%d: %s -> %s\n", line_num, fname, temp);
-
-            find_result++;
+            printf("%d: %s -> %s", lineNumber, fileName, temp);
+            occurrenceCount++;
         }
-        line_num++;
+        lineNumber++;
     }
 
-    if (find_result == 0)
-    {
-        fprintf(stderr, "\nSorry, couldn't find a match.\n");
-    }
+    if (occurrenceCount == 0)
+        fprintf(stderr, "Could not find any occurence.\n");
 
-    if (fp)
-    {
-        fclose(fp);
-    }
+    if (filePtr)
+        fclose(filePtr);
 
-    return (0);
+
+    return 0;
 }
 
 void recursiveSearch(char *path, char *str)
 {
-    char *filearray;
+    char *filePath;
     char *directory;
     int i = 0;
-
     DIR *d = opendir(path);
 
-    if (d == NULL)
-        return;
+    if (d == NULL) return;
+
     struct dirent *dir;
     while ((dir = readdir(d)) != NULL)
     {
         if (dir->d_type != DT_DIR)
         {
-            filearray = dir->d_name;
+            filePath = dir->d_name;
             char d_path[1024];
+            int result = 0;
             sprintf(d_path, "%s/%s", path, dir->d_name);
-            if (strstr(filearray, ".c") || strstr(filearray, ".C") || strstr(filearray, ".h") || strstr(filearray, ".H"))
+            if (strstr(filePath, ".c") || strstr(filePath, ".C") || strstr(filePath, ".h") || strstr(filePath, ".H"))
             {
-                if (searchInfile(d_path, str) == -1)
-                {
-                    fprintf(stderr, "COULDNT READ THE FILE !");
+                result = searchRecursiveFile(d_path, str);
+                if(result == -1) {
+                    fprintf(stderr, "%s", "Could not find any file to read.");
                 }
-            }
+            }    
+                   
         }
-
         else if (dir->d_type == DT_DIR && strcmp(dir->d_name, ".") != 0 && strcmp(dir->d_name, "..") != 0)
         {
             char d_path[1024];

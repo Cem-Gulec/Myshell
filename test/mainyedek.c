@@ -21,19 +21,7 @@ PART C
 0010 -----> Append 1 
 0011 -----> Input 1
 0100 -----> Both Input and Output 
-0101 -----> Both Input and Append
-0110 -----> Both Input and Standard Error
 0111 -----> Standard Error 1
-1000 -----> ERROR CASE "<< Case"
-1001 -----> ERROR CASE
-1010 -----> ERROR CASE
-1011 -----> ERROR CASE
-1100 -----> ERROR CASE
-1101 -----> ERROR CASE
-1110 -----> ERROR CASE
-1111 -----> ERROR CASE 
-
-
 */
 
 #define MAX_LINE 128 /* 128 chars per line, per command, should be enough. */
@@ -261,13 +249,6 @@ int main(void)
                     }
                 }
             }
-
-            /** the steps are:
-            (1) fork a child process using fork() */
-            /*
-                        (2) the child process will invoke execv()
-						(3) if background == 0, the parent will wait,
-                        otherwise it will invoke the setup() function again. */
         }
         else
         {
@@ -275,10 +256,6 @@ int main(void)
 
             if (strcmp("0001", identifier) == 0)
             {
-                //printf("merhaba ben output\n");
-
-                //printf("%s\n", args[1]);
-                //printf("%c\n", inputBuffer[3]);
                 int indexOfOperator = 0;
                 char outputFileName[128];
                 int indexOfOutputFileName = 0;
@@ -330,8 +307,7 @@ int main(void)
             }
             else if (strcmp("0010", identifier) == 0)
             {
-                //printf("%s\n", args[1]);
-                //printf("%c\n", inputBuffer[3]);
+               
                 int indexOfOperator = 0;
                 char outputFileName[128];
                 int indexOfOutputFileName = 0;
@@ -383,8 +359,6 @@ int main(void)
             }
             else if (strcmp("0011", identifier) == 0)
             {
-                //printf("%s\n", args[1]);
-                //printf("%c\n", inputBuffer[3]);
                 int indexOfOperator = 0;
                 char outputFileName[128];
                 int indexOfOutputFileName = 0;
@@ -436,7 +410,6 @@ int main(void)
             }
             else if (strcmp("0100", identifier) == 0)
             {
-                //printf("merhaba ben both input and output\n");
                 int indexOfOperator = 0;
                 char inputFileName[128];
                 char outputFileName[128];
@@ -522,19 +495,9 @@ int main(void)
                 close(inputFileDescription);
                 close(outputFileDescription);
             }
-            else if (strcmp("0101", identifier) == 0)
-            {
-                printf("merhaba ben both input and append\n");
-            }
-            else if (strcmp("0110", identifier) == 0)
-            {
-                printf("merhaba ben both input and std error\n");
-            }
             else if (strcmp("0111", identifier) == 0)
             {
-                //printf("merhaba ben std error\n");
-                //printf("%s\n", args[1]);
-                //printf("%c\n", inputBuffer[3]);
+                
                 int indexOfOperator = 0;
                 char outputFileName[128];
                 int indexOfOutputFileName = 0;
@@ -636,11 +599,6 @@ void setup(char inputBuffer[], char *args[], int *background)
         perror("error reading the command");
         exit(-1); /* terminate with error code of -1 */
     }
-
-    // if (strstr(inputBuffer, "bookmark") != NULL || strstr(inputBuffer, "-l") != NULL || strstr(inputBuffer, "-d") != NULL || strstr(inputBuffer, "-i") != NULL)
-    // {
-    //     return;
-    // }
     for (i = 0; i < length; i++)
     { /* examine every character in the inputBuffer */
 
@@ -730,63 +688,15 @@ void setup(char inputBuffer[], char *args[], int *background)
         } /* end of switch */
     }
     /* end of for */
-    args[ct] = NULL; /* just in case the input line was > 80 */
-
-    // if (args[1] == NULL && strcmp(identifier, "0001") == 0)
-    // {
-    //     fprintf(stderr, "%s", "Argument count is less than expected.\n");
-    //     return;
-    // }
-
+    args[ct] = NULL; 
     if (strcmp(identifier, "0001") == 0 || strcmp(identifier, "0010") == 0 || strcmp(identifier, "0111") == 0 || strcmp(identifier, "0100") == 0)
     {
         args[ct - 1] = NULL;
     }
-
-    //args[ct-1] = NULL;
-    //     for (i = 0; i <= ct; i++)
-    //     {
-    //         // argumanın command olup olmadığını kontrol eden fonksiyon yazacağız
-
-    //         int j = 0;
-    //         int redirectionCount = 0;
-    //         while(1){
-    //             if(args[i][j] != '\0')
-    //                 break;
-    //             if((args[i][j] != '<' || args[i][j] != '<') && i == 0)
-    //             {
-    //                 printf("hata var");
-    //             }
-    //             else if ( args[i][j] != '<' )
-    //             {
-    //                 // input
-    //                 redirectionCount++;
-    //                 if (redirectionCount > 1) {
-    //                     // hata
-    //                 }
-    //             } else if ( args[i][j] != '>' )
-    //             {
-    //                 // input
-    //                 redirectionCount++;
-    //                 if (redirectionCount > 2) {
-    //                     // hata
-    //                     return;
-    //                 } else if (redirectionCount == 2) {
-    //                     // append
-    //                 } else {
-    //                     // output
-    //                 }
-    //             }
-
-    //             j++;
-    //         }
-    //     }
-    //     printf("args %d = %s\n", i, args[i]);
-    // }
-    /* end of setup routine */
 }
-char *getPath(char *arg)
 
+// Find and get the environment path and add to current folder
+char *getPath(char *arg)
 {
     char buffer[100];
     char qwz[100];
@@ -813,12 +723,12 @@ char *getPath(char *arg)
             return strdup(tempPath);
         }
         ch = strtok(NULL, ":");
-        // printf("%s\n", tempPath);
     }
     return "-1";
 }
 
-void insertBookmark(char *command)
+
+void insertBookmark(char *command) 
 {
     if (head == NULL)
     {
@@ -843,17 +753,6 @@ void insertBookmark(char *command)
         link->command = strdup(command);
         link->next = NULL;
     }
-    // //create a link
-    // struct bookmarkNode *link = (struct bookmarkNode *)malloc(sizeof(struct bookmarkNode));
-
-    // //link->key = key;
-    // link->command = strdup(command);
-
-    // //point it to old first node
-    // link->next = head;
-
-    // //point first to new first node
-    // head = link;
 }
 
 void printBookmarkList()
@@ -964,9 +863,9 @@ int isArgumentNumber(char *arg)
     return 1;
 }
 
-void removeAllChars(char *str, char c)
+void removeAllChars(char *inputStr, char c)
 {
-    char *pr = str, *pw = str;
+    char *pr = inputStr, *pw = inputStr;
     while (*pr)
     {
         *pw = *pr++;

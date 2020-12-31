@@ -1,1 +1,30 @@
-4 + 5 = 9
+total 228
+-rw-rw-r-- 1 enver enver    50 Ara 31 00:59 a.txt
+-rw-rw-r-- 1 enver enver 90145 Ara 22 02:53 CSE3033_Project2.pdf
+-rw-rw-r-- 1 enver enver     9 Ara 31 00:59 c.txt
+-rw-r--r-- 1 enver enver    64 Ara 31 20:37 err.txt
+-rw-rw-r-- 1 enver enver     3 Ara 31 00:59 input.txt
+-rwxrwxr-x 1 enver enver 27360 Ara 31 21:57 mainSetup
+-rw-rw-r-- 1 enver enver 33118 Ara 31 21:56 mainSetup.c
+-rw-rw-r-- 1 enver enver     0 Ara 31 22:07 output.txt
+-rw-rw-r-- 1 enver enver    13 Ara 22 02:53 README.md
+drwxrwxr-x 2 enver enver  4096 Ara 31 19:55 test
+-rwxrwxr-x 1 enver enver 16808 Ara 31 00:59 test_prog
+-rw-rw-r-- 1 enver enver   246 Ara 31 00:59 test_prog.c
+-rwxrwxr-x 1 enver enver 16752 Ara 31 00:59 test_stderr
+-rw-rw-r-- 1 enver enver   226 Ara 31 00:59 test_stderr.c
+total 232
+-rw-rw-r-- 1 enver enver    50 Ara 31 00:59 a.txt
+-rw-rw-r-- 1 enver enver 90145 Ara 22 02:53 CSE3033_Project2.pdf
+-rw-rw-r-- 1 enver enver     9 Ara 31 00:59 c.txt
+-rw-r--r-- 1 enver enver    64 Ara 31 20:37 err.txt
+-rw-rw-r-- 1 enver enver     3 Ara 31 00:59 input.txt
+-rwxrwxr-x 1 enver enver 27360 Ara 31 21:57 mainSetup
+-rw-rw-r-- 1 enver enver 33118 Ara 31 21:56 mainSetup.c
+-rw-rw-r-- 1 enver enver   773 Ara 31 22:07 output.txt
+-rw-rw-r-- 1 enver enver    13 Ara 22 02:53 README.md
+drwxrwxr-x 2 enver enver  4096 Ara 31 19:55 test
+-rwxrwxr-x 1 enver enver 16808 Ara 31 00:59 test_prog
+-rw-rw-r-- 1 enver enver   246 Ara 31 00:59 test_prog.c
+-rwxrwxr-x 1 enver enver 16752 Ara 31 00:59 test_stderr
+-rw-rw-r-- 1 enver enver   226 Ara 31 00:59 test_stderr.c
