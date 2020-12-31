@@ -52,10 +52,8 @@ void removeBookmark(int position);
 char *getExecutableStringFromBookmarks(int position);
 int isArgumentNumber(char *arg);
 void removeAllChars(char *str, char c);
-int searchInCurrentDirectory(char *input);
-void searchRecursiveDirectory(char *path, char *input);
-int searchInfile(char *fname, char *str);
-void recursiveSearch(char *path, char *str);
+int searchInCurrentDirectory (char *input);
+int searchRecursiveDirectory (char * input);
 char *ltrim(char *s);
 char *rtrim(char *s);
 char *trim(char *s);
@@ -138,9 +136,7 @@ int main(void)
                         }
                     }
                     removeAllChars(searchKeyword, '"');
-                    char path[1024];
-                    getcwd(path, sizeof(path));
-                    recursiveSearch(path, searchKeyword);
+
                 }
                 else
                 {
@@ -160,7 +156,8 @@ int main(void)
                         }
                     }
                     removeAllChars(searchKeyword, '"');
-                    searchInCurrentDirectory(searchKeyword);
+                    searchInCurrentDirectory (searchKeyword); 
+
                 }
             }
             else if (strstr(inputBuffer, "bookmark") != NULL)
@@ -816,6 +813,7 @@ char *getPath(char *arg)
             return strdup(tempPath);
         }
         ch = strtok(NULL, ":");
+        // printf("%s\n", tempPath);
     }
     return "-1";
 }
@@ -977,42 +975,34 @@ void removeAllChars(char *str, char c)
     *pw = '\0';
 }
 
-int searchInCurrentDirectory(char *input)
-{
+int searchInCurrentDirectory (char *input) {
     char curWorkingDir[255];
     getcwd(curWorkingDir, 255);
 
     char *fileName;
-    DIR *dir;
+    DIR * dir;
     struct dirent *entry;
 
     int occurrenceCount = 0;
 
-    if ((dir = opendir(curWorkingDir)) != NULL)
-    {
-        while ((entry = readdir(dir)) != NULL)
-        {
+    if((dir = opendir(curWorkingDir)) != NULL) {
+        while((entry = readdir(dir)) != NULL) {
             fileName = entry->d_name;
 
-            if (strstr(fileName, ".c") || strstr(fileName, ".C") || strstr(fileName, ".h") || strstr(fileName, ".H"))
-            {
-                FILE *fp;
+            if(strstr(fileName, ".c") || strstr(fileName, ".C") || strstr(fileName, ".h") || strstr(fileName, ".H")) {
+                FILE *fp; 
                 int lineNumber = 1;
-
+                
                 char buffer[1024];
                 fp = fopen(fileName, "r");
-                if (fp == NULL)
-                {
+                if(fp == NULL){
                     return -1;
                 }
 
-                while (fgets(buffer, 1024, fp) != NULL)
-                {
-                    if ((strstr(buffer, strdup(input))) != NULL)
-                    {
+                while(fgets(buffer, 1024, fp) != NULL) {
+                    if((strstr(buffer, strdup(input))) != NULL) {
                         char *temp = trim(buffer);
-
-                        printf("%d: %s/%s -> %s\n", lineNumber, curWorkingDir, fileName, temp);
+                        printf("%d: %s -> %s\n", lineNumber, fileName, temp);
                         occurrenceCount++;
                     }
                     lineNumber++;
@@ -1020,105 +1010,72 @@ int searchInCurrentDirectory(char *input)
                 fclose(fp);
             }
         }
-        if (occurrenceCount == 0)
-        {
-            printf("Could not find any occurrence under current working directory.");
-        }
+        if (occurrenceCount == 0) {
+                    printf("Could not find any occurrence under current working directory.");
+                }
+        closedir(dir);
     }
-    closedir(dir);
-    return 1;
 }
+
+int searchRecursiveDirectory (char * input) {
+    char curWorkingDir[255];
+    getcwd(curWorkingDir, 255);
+
+    char *fileName;
+    DIR * dir;
+    struct dirent *directory;
+
+    int occurrenceCount = 0;
+
+    if((dir = opendir(curWorkingDir)) != NULL) {
+        while((directory = readdir(dir)) != NULL) {
+            fileName = directory->d_name;
+            char dirName[255];
+            sprintf(dirName, "%s%s", curWorkingDir, directory->d_name);
+            if(strstr(fileName, ".c") || strstr(fileName, ".C") || strstr(fileName, ".h") || strstr(fileName, ".H")) {
+                FILE *fp; 
+                int lineNumber = 1;
+                
+                char buffer[1024];
+                fp = fopen(fileName, "r");
+                if(fp == NULL){
+                    return -1;
+                }
+
+                while(fgets(buffer, 1024, fp) != NULL) {
+                    if((strstr(buffer, strdup(input))) != NULL) {
+                        char *temp = trim(buffer);
+                        printf("%d: %s -> %s\n", lineNumber, fileName, temp);
+                        occurrenceCount++;
+                    }
+                    lineNumber++;
+                }
+            }
+            
+        }
+        if (occurrenceCount == 0) {
+                    printf("Could not find any occurrence under current working directory.");
+        }
+        closedir(dir);
+    }
+}
+
 
 char *ltrim(char *s)
 {
-    while (isspace(*s))
-        s++;
+    while(isspace(*s)) s++;
     return s;
 }
 
 char *rtrim(char *s)
 {
-    char *back = s + strlen(s);
-    while (isspace(*--back))
-        ;
-    *(back + 1) = '\0';
+    char* back = s + strlen(s);
+    while(isspace(*--back));
+    *(back+1) = '\0';
     return s;
 }
 
 char *trim(char *s)
 {
-    return rtrim(ltrim(s));
-}
-
-int searchInfile(char *fname, char *str)
-{
-    FILE *fp;
-    int line_num = 1;
-    int find_result = 0;
-    char temp[1024];
-
-    if ((fp = fopen(fname, "r")) == NULL)
-    {
-        return (-1);
-    }
-
-    while (fgets(temp, 1024, fp) != NULL)
-    {
-        if ((strstr(temp, strdup(str))) != NULL)
-        {
-            printf("%d: %s -> %s\n", line_num, fname, temp);
-
-            find_result++;
-        }
-        line_num++;
-    }
-
-    if (find_result == 0)
-    {
-        fprintf(stderr, "\nSorry, couldn't find a match.\n");
-    }
-
-    if (fp)
-    {
-        fclose(fp);
-    }
-
-    return (0);
-}
-
-void recursiveSearch(char *path, char *str)
-{
-    char *filearray;
-    char *directory;
-    int i = 0;
-
-    DIR *d = opendir(path);
-
-    if (d == NULL)
-        return;
-    struct dirent *dir;
-    while ((dir = readdir(d)) != NULL)
-    {
-        if (dir->d_type != DT_DIR)
-        {
-            filearray = dir->d_name;
-            char d_path[1024];
-            sprintf(d_path, "%s/%s", path, dir->d_name);
-            if (strstr(filearray, ".c") || strstr(filearray, ".C") || strstr(filearray, ".h") || strstr(filearray, ".H"))
-            {
-                if (searchInfile(d_path, str) == -1)
-                {
-                    fprintf(stderr, "COULDNT READ THE FILE !");
-                }
-            }
-        }
-
-        else if (dir->d_type == DT_DIR && strcmp(dir->d_name, ".") != 0 && strcmp(dir->d_name, "..") != 0)
-        {
-            char d_path[1024];
-            sprintf(d_path, "%s/%s", path, dir->d_name);
-            recursiveSearch(d_path, str);
-        }
-    }
-    closedir(d);
+    return rtrim(ltrim(s)); 
 }
