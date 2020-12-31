@@ -49,7 +49,7 @@ void printBookmarkList();
 void removeBookmark(int position);
 char *getExecutableStringFromBookmarks(int position);
 int isArgumentNumber(char *arg);
-void removeAllChars(char* str, char c);
+void removeAllChars(char *str, char c);
 
 struct bookmarkNode
 {
@@ -107,6 +107,19 @@ int main(void)
             else if (strcmp(args[0], "search") == 0)
             {
                 // PART B
+                if (args[1] == NULL)
+                {
+                    fprintf(stderr, "%s", "Input argument is invalid.");
+                }
+                else if (strcmp(args[1], "-r") == 0)
+                {
+                }
+                else
+                {
+                    char *searchKeyword = strdup(args[1]);
+                    removeAllChars(searchKeyword, '"');
+                    printf("BAZINGA: %s", searchKeyword);
+                }
             }
             else if (strstr(inputBuffer, "bookmark") != NULL)
             {
@@ -130,7 +143,7 @@ int main(void)
                     else
                     {
                         //TODO EXECUTE
-                        printf("POFUDUK: %s\n", getExecutableStringFromBookmarks(atoi(args[2])) );
+                        printf("POFUDUK: %s\n", getExecutableStringFromBookmarks(atoi(args[2])));
                         char *executeCommand = getExecutableStringFromBookmarks(atoi(args[2]));
                         system(executeCommand);
                     }
@@ -170,7 +183,8 @@ int main(void)
                     for (int i = 0; i < index; i++)
                     {
                         strcat(bookmarkString, args[i]);
-                        if(i != index - 1) {
+                        if (i != index - 1)
+                        {
                             strcat(bookmarkString, " ");
                         }
                     }
@@ -788,7 +802,7 @@ void insertBookmark(char *command)
         }
 
         struct bookmarkNode *link = (struct bookmarkNode *)malloc(sizeof(struct bookmarkNode));
-        iter -> next = link;
+        iter->next = link;
         link->command = strdup(command);
         link->next = NULL;
     }
@@ -810,7 +824,6 @@ void printBookmarkList()
 
     struct bookmarkNode *ptr = head;
 
-    
     //start from the beginning
     int i = 0;
     while (ptr != NULL)
@@ -819,7 +832,6 @@ void printBookmarkList()
         ptr = ptr->next;
         i++;
     }
-   
 }
 
 void removeBookmark(int position)
@@ -886,9 +898,9 @@ char *getExecutableStringFromBookmarks(int position)
     {
         if (pos == position)
         {
-            returnExecutableCommand = strdup(current -> command);
+            returnExecutableCommand = strdup(current->command);
             //strcpy(returnExecutableCommand,current->command);
-            removeAllChars(returnExecutableCommand,'"');
+            removeAllChars(returnExecutableCommand, '"');
             return returnExecutableCommand;
         }
 
@@ -915,13 +927,20 @@ int isArgumentNumber(char *arg)
     return 1;
 }
 
-void removeAllChars(char* str, char c)
-  {
-  char *pr = str, *pw = str;
-  while (*pr)
+void removeAllChars(char *str, char c)
+{
+    char *pr = str, *pw = str;
+    while (*pr)
     {
-    *pw = *pr++;
-    pw += (*pw != c);
+        *pw = *pr++;
+        pw += (*pw != c);
     }
-  *pw = '\0';
-  }
+    *pw = '\0';
+}
+
+void searchInCurrentDirectory (char *input) {
+    char buffer[255];
+    getcwd(buffer, 255);
+
+    char *fileArray;
+}
