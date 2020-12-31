@@ -211,7 +211,6 @@ int main(void)
                         }
                     }
                     insertBookmark(bookmarkString);
-                    //printf("%s", bookmarkString);
                 }
             }
             else if (strcmp(args[0], "exit") == 0)
@@ -304,8 +303,6 @@ int main(void)
             }
             else if (strcmp("0010", identifier) == 0)
             {
-                //printf("%s\n", args[1]);
-                //printf("%c\n", inputBuffer[3]);
                 int indexOfOperator = 0;
                 char outputFileName[128];
                 int indexOfOutputFileName = 0;
@@ -458,9 +455,6 @@ int main(void)
                         }
                     }
                 }
-
-                //printf("%s ---- %s\n", inputFileName, outputFileName);
-
                 int inputFileDescription = open(inputFileName, FLAGS_FOR_INPUT);
                 if (inputFileDescription == -1)
                 {
@@ -494,10 +488,6 @@ int main(void)
                 }
                 close(inputFileDescription);
                 close(outputFileDescription);
-            }
-            else if (strcmp("0110", identifier) == 0)
-            {
-                printf("merhaba ben both input and std error\n");
             }
             else if (strcmp("0111", identifier) == 0)
             {
@@ -602,11 +592,6 @@ void setup(char inputBuffer[], char *args[], int *background)
         perror("error reading the command");
         exit(-1); /* terminate with error code of -1 */
     }
-
-    // if (strstr(inputBuffer, "bookmark") != NULL || strstr(inputBuffer, "-l") != NULL || strstr(inputBuffer, "-d") != NULL || strstr(inputBuffer, "-i") != NULL)
-    // {
-    //     return;
-    // }
     for (i = 0; i < length; i++)
     { /* examine every character in the inputBuffer */
 
@@ -697,59 +682,10 @@ void setup(char inputBuffer[], char *args[], int *background)
     }
     /* end of for */
     args[ct] = NULL; /* just in case the input line was > 80 */
-
-    // if (args[1] == NULL && strcmp(identifier, "0001") == 0)
-    // {
-    //     fprintf(stderr, "%s", "Argument count is less than expected.\n");
-    //     return;
-    // }
-
     if (strcmp(identifier, "0001") == 0 || strcmp(identifier, "0010") == 0 || strcmp(identifier, "0111") == 0 || strcmp(identifier, "0100") == 0)
     {
         args[ct - 1] = NULL;
     }
-
-    //args[ct-1] = NULL;
-    //     for (i = 0; i <= ct; i++)
-    //     {
-    //         // argumanın command olup olmadığını kontrol eden fonksiyon yazacağız
-
-    //         int j = 0;
-    //         int redirectionCount = 0;
-    //         while(1){
-    //             if(args[i][j] != '\0')
-    //                 break;
-    //             if((args[i][j] != '<' || args[i][j] != '<') && i == 0)
-    //             {
-    //                 printf("hata var");
-    //             }
-    //             else if ( args[i][j] != '<' )
-    //             {
-    //                 // input
-    //                 redirectionCount++;
-    //                 if (redirectionCount > 1) {
-    //                     // hata
-    //                 }
-    //             } else if ( args[i][j] != '>' )
-    //             {
-    //                 // input
-    //                 redirectionCount++;
-    //                 if (redirectionCount > 2) {
-    //                     // hata
-    //                     return;
-    //                 } else if (redirectionCount == 2) {
-    //                     // append
-    //                 } else {
-    //                     // output
-    //                 }
-    //             }
-
-    //             j++;
-    //         }
-    //     }
-    //     printf("args %d = %s\n", i, args[i]);
-    // }
-    /* end of setup routine */
 }
 
 // Get the environment path and add to current working directory
@@ -809,17 +745,6 @@ void insertBookmark(char *command)
         link->command = strdup(command);
         link->next = NULL;
     }
-    // //create a link
-    // struct bookmarkNode *link = (struct bookmarkNode *)malloc(sizeof(struct bookmarkNode));
-
-    // //link->key = key;
-    // link->command = strdup(command);
-
-    // //point it to old first node
-    // link->next = head;
-
-    // //point first to new first node
-    // head = link;
 }
 
 void printBookmarkList()
@@ -902,7 +827,6 @@ char *getExecutableStringFromBookmarks(int position)
         if (pos == position)
         {
             returnExecutableCommand = strdup(current->command);
-            //strcpy(returnExecutableCommand,current->command);
             removeAllChars(returnExecutableCommand, '"');
             return returnExecutableCommand;
         }
